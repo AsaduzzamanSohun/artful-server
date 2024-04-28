@@ -28,24 +28,55 @@ async function run() {
 
         const craftCollection = client.db("craftDB").collection('craft');
 
-        app.get('/crafts', async(req, res) => {
+        app.get('/crafts', async (req, res) => {
             const cursor = craftCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
 
+        app.get('/crafts/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await craftCollection.findOne(filter);
+            res.send(result)
+        })
 
-        app.post('/crafts', async(req, res) => {
+
+        app.post('/crafts', async (req, res) => {
             const item = req.body;
             // console.log(item);
             const result = await craftCollection.insertOne(item);
             res.send(result);
+        });
+
+        app.put('/crafts/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const craftItem = req.body;
+            const craft = {
+                $set: {
+                    image: craftItem.image,
+                    name: craftItem.name,
+                    subcategory: craftItem.subcategory,
+                    description: craftItem.description,
+                    price: craftItem.price,
+                    rating: craftItem.rating,
+                    customization: craftItem.customization,
+                    process_time: craftItem.process_time,
+                    status: craftItem.status,
+                    email: craftItem.email,
+                    username: craftItem.username
+                }
+            }
+            const result = await craftCollection.updateOne(filter, craft, options)
+            res.send(result)
         })
 
 
-        app.delete('/crafts/:id', async(req, res) => {
+        app.delete('/crafts/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await craftCollection.deleteOne(query);
             res.send(result)
         })
